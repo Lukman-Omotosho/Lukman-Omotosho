@@ -1,0 +1,139 @@
+---
+title: "Little Dive Into Sales Data"
+author: "Lukman"
+date: "2024-06-28"
+output: html_document
+---
+
+## Introduction
+This project is about deriving insights from a particular sales data. The dataset used was collected from a website and it is meant for practice use only. The data has been cleaned in an excel spreadsheet, so all we just need to do is to carry out some data manipulation, analysis and visualization so as to get insights from the data. So lets dive in!
+
+## Resources Set-Up
+### Install and Load Required Packages
+This analysis requires the use of popular R package, tidyverse. The code below should help load the tidyverse package.
+```{r load required package}
+library(tidyverse)
+```
+
+### Loading The Dataset
+We can load the dataset using the read.csv function.
+```{r load the dataset}
+sales <- read.csv("C:/Users/U/Desktop/DDP/sales.csv")
+```
+
+### About The Dataset
+Let's use the summary function to get a summary about the data.
+```{r summary of data loaded}
+summary(sales)
+```
+
+We can also use the head function to give us a brief view of the dataset.
+```{r brief view of data}
+head(sales)
+```
+
+Now that we know the data we are working with, let's do some data manipulation to aid our analysis.
+
+## Data Manipulation
+We have the sales amount for each respective order in different shipmodes and segments.
+Let's assume we have been told that cost of production for each order is half of the sales amount, then we can get the cost using the code below and add it as a new column in our dataset.
+```{r add cost column}
+sales <- mutate(sales, Cost = Sales/2)
+```
+
+Let's get the profit by substracting the cost from the sales amount and add it as a new column.
+```{r add profit column}
+sales <- mutate(sales, Profit = Sales - Cost)
+```
+
+Take a look at the changes we made
+```{r new look of dataset}
+head(sales)
+```
+
+## Getting Into Data Analysis
+Firstly, let's know our profit by ship mode.
+```{r profit by shipmode}
+profit_by_shipmode <- sales %>% drop_na() %>% group_by(Shipmode) %>% summarize(total_profit = sum(Profit, na.rm = TRUE)) %>% arrange(-total_profit)
+profit_by_shipmode
+```
+
+Standard class made the largest profit.
+
+Then our profit by segment
+```{r profit by segment}
+profit_by_segment <- sales %>% drop_na() %>% group_by(Segment) %>% summarize(total_profit = sum(Profit, na.rm = TRUE)) %>% arrange(-total_profit)  
+profit_by_segment
+```
+
+The largest portion of profit was obtained from the consumer segment.
+
+It will also be useful to know number of orders from each segment.
+```{r order by segment}
+order_by_segment <- sales %>% drop_na() %>% group_by(Segment) %>% summarize(total_orders = n()) %>% arrange(-total_orders)
+order_by_segment
+```
+
+Fair enough, consumer segment has the most orders since it has the largest profit also.
+
+Then the number of orders by different ship modes
+```{r order by shipmode}
+order_by_shipmode <- sales %>% drop_na() %>% group_by(Shipmode) %>% summarize(total_orders = n()) %>% arrange(-total_orders)
+order_by_shipmode
+```
+
+Standard class has the most orders.
+
+That should be okay for analysis. Let's get to the real deal.
+
+## Data Visualization
+What about we visualize the profit made by different segment using a column chart, which is suitable for making comparism
+```{r segment profit chart}
+ggplot(profit_by_segment) +
+  geom_col(mapping = aes(x= Segment, y = total_profit, fill = Segment)) + 
+  labs(title = "Total Profit by Segment")
+```
+
+Nice! 
+
+Lets do the same to the profit made on different shipmodes
+```{r shipmode profit chart}
+ggplot(profit_by_shipmode) + 
+  geom_col(mapping = aes(x = Shipmode, y = total_profit, fill = Shipmode)) + 
+  labs(title = "Total Profit by Shipmode")
+```
+
+Now let's do something different.We will be using a pie chart to help us draw more insights on the number of orders in different segment.
+We'll need to add a percentage column for better clarity before drawing the pie chart.
+```{r segment orders chart}
+order_by_segment$percentage <- round(order_by_segment$total_orders /sum(order_by_segment$total_orders) * 100, 1)
+ggplot(order_by_segment, aes(x="", y = total_orders, fill = Segment)) + 
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar(theta = "y") + 
+  labs(title = "Total Order By Segment") +
+  theme_void() +
+  geom_text(aes(label = paste0(percentage, "%")),position = position_stack(vjust = 0.5))
+```
+
+Let's use the same idea to visualize the number of orders by different ship mode.
+```{r Shipmode orders chart}
+order_by_shipmode$percentage <- round(order_by_shipmode$total_orders /sum(order_by_shipmode$total_orders) * 100, 1)
+ggplot(order_by_shipmode, aes(x="", y = total_orders, fill = Shipmode)) + 
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar(theta = "y") + 
+  labs(title = "Total Order By Shipmode") +
+  theme_void() + 
+  geom_text(aes(label = paste0(percentage, "%")),position = position_stack(vjust = 0.5))
+
+```
+
+Cool!
+
+## Insights
+* The most profit was made by the consumer segment, followed by the corporate segment, which means the home office segment made the least profit.
+* Based on ship mode, the standard class and second class made the most profit.
+* The consumer segment had more than half of the total orders.
+* Standard class also obtained more than half of the total orders, based on ship mode.
+
+
+**Not bad!**
