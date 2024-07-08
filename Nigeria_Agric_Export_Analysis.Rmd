@@ -1,0 +1,251 @@
+---
+title: "Nigeria Agric Export Analysis"
+author: "Lukman"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## Introduction
+This analysis is about the export of agricultural products in Nigeria. The aim includes:
+
+* Knowing the agricultural products being exported and also their respective performance in terms of sales and profit.
+* Know the countries the products are being exported to and their quantities.
+* Gain insight about the companies exporting the products in terms of the quantities exported and income realised.
+* Ascertaining the income made from exports and their quantities on a yearly basis from 2020 to 2023.
+
+## Resources Set-Up
+Let's install and load the required package for this analysis which is the tidyverse.
+```{r install packages}
+#install.packages(tidyverse) #tidyverse is installed in current environment that's why it's commented out
+library(tidyverse)
+```
+
+## Dataset For Analysis
+### About The Dataset
+The dataset to be used is gotten from data.world website. It contains the following columns:
+
+* Product Name - The name of the product.
+* Company - The company exporting the product.
+* Export Country - The country the product is being exported to.
+* Date - The date the product is being exported.
+* Units Sold - The number of units of the product exported.
+* Unit price - The price of each unit of product exported.
+* Profit per Unit - The profit made from each unit exported.
+* Export Value - The total sales value from the product exported which is the units sold multiplied by the unit price.
+* Destination Port - The port the product is being exported from.
+* Transportation Mode - The mode of transportation used to export the product.
+
+### Loading Dataset
+Let's load the dataset using the read.csv function.
+```{r load the dataset}
+nig_agric_exports <- read.csv("C:/Users/U/Desktop/DDP/nigeria_agricultural_exports.csv")
+```
+
+Let's get some information about the data. The head function will be used to give us a brief view of the dataset. The summary function gives us a brief summary of our data. The colnames function helps us know the names of each column. The str function helps us know the structure of the dataset. The class function lets us know we are working with a dataframe.
+```{r information about data}
+head(nig_agric_exports)
+
+summary(nig_agric_exports)
+
+colnames(nig_agric_exports)
+
+str(nig_agric_exports)
+
+class(nig_agric_exports)
+```
+
+## Data Processing 
+From the information we got about our data, we can see that the date column is of character type which should not be. We can change the date column to a date type using the as.Date and use the str function to confirm the change we made.
+```{r change data type}
+nig_agric_exports$Date <- as.Date(nig_agric_exports$Date, format = "%m/%d/%Y")
+str(nig_agric_exports)
+```
+
+## Data Manipulation
+We will be needing to add some columns to our dataset to help us in our analysis. The dataset includes the profit per unit but we were not given the total profit made so we will have to add to total profit column which is the multiplication of the units sold and the profit per unit. We will also be needing to extract the year from the date column and add it as a new column so we get to know the year each product were exported.
+```{r add new columns}
+nig_agric_exports <- mutate(nig_agric_exports, Total_profit = Units.Sold * Profit.per.unit, Year = year(Date))
+head(nig_agric_exports)
+```
+
+Our dataset looks good, lets do some analysis.
+
+## Data Analysis
+### Total Profit and Export Value Made From 2020 to 2023
+Firstly, lets know the total profit and export value made on a yearly basis on agricultural products from 2020 to 2023.
+```{r yearly returns}
+yearly_returns <- nig_agric_exports %>% drop_na() %>% group_by(Year) %>% summarize(Export_Value = sum(Export.Value, na.rm = TRUE), Total_profit = sum(Total_profit, na.rm = TRUE)) %>% arrange(-Export_Value)
+yearly_returns
+```
+
+### Total Units, Profits and Export value Made On Each Products
+```{r product returns}
+Product_returns <- nig_agric_exports %>% drop_na() %>% group_by(Product.Name) %>% summarize(Export_value = sum(Export.Value, na.rm = TRUE), Total_Units = sum(Units.Sold, na.rm = TRUE), Total_profit = sum(Total_profit, na.rm = TRUE)) %>% arrange(-Export_value)
+Product_returns
+```
+
+### Income Realised From Agricultural Product Export By Each Company
+```{r company returns}
+Company_returns <- nig_agric_exports %>% drop_na() %>% group_by(Company) %>% summarize(Export_value = sum(Export.Value, na.rm = TRUE), Total_profit = sum(Total_profit, na.rm = TRUE)) %>% arrange(-Export_value)
+Company_returns
+```
+
+### Total Export Value Made From Each Export Country
+```{r export country info}
+export_country_info <- nig_agric_exports %>% drop_na() %>% group_by(Export.Country) %>% summarize(Export_value = sum(Export.Value, na.rm = TRUE)) %>% arrange(-Export_value)
+export_country_info
+```
+
+### Agricultural Products Exported to Italy Between 2020 to 2023
+```{r Italy info}
+Italy_info <- nig_agric_exports %>% drop_na() %>% filter(Export.Country == "Italy") %>% group_by(Product.Name) %>% summarize(Export_value = sum(Export.Value, na.rm = TRUE)) %>% arrange(-Export_value)
+Italy_info
+```
+
+### Total Units and Export Value Of Cocoa Exported to Each Country
+```{r cocoa buyers}
+cocoa_buyers <- nig_agric_exports %>% drop_na() %>% filter(Product.Name == "Cocoa") %>% group_by(Export.Country) %>% summarize(Export_value = sum(Export.Value, na.rm = TRUE), Total_Units = sum(Units.Sold, na.rm = TRUE)) %>% arrange(-Export_value)
+cocoa_buyers
+```
+
+### Income From Cocoa Exported By Different Companies
+```{r cocoa exporters}
+cocoa_exporters <- nig_agric_exports %>% drop_na() %>% filter(Product.Name == "Cocoa") %>% group_by(Company) %>% summarize(Export_value = sum(Export.Value, na.rm = TRUE), Total_Units = sum(Units.Sold, na.rm = TRUE), Total_profit = sum(Total_profit, na.rm = TRUE)) %>% arrange(-Export_value)
+cocoa_exporters
+```
+
+### Total Units and Value Of Cocoa Exported From 2020 to 2023
+```{r yearly cocoa export}
+yearly_cocoa_export <- nig_agric_exports %>% drop_na() %>% filter(Product.Name == "Cocoa") %>% group_by(Year) %>% summarize(Export_value = sum(Export.Value, na.rm = TRUE), Total_Units = sum(Units.Sold, na.rm = TRUE), Total_profit = sum(Total_profit, na.rm = TRUE)) %>% arrange(-Export_value)
+yearly_cocoa_export
+```
+
+## Data Visualization
+Let's use some visuals to help communicate our data better.
+
+### Export Value From 2020 to 2023
+```{r chart 1}
+ggplot(data = yearly_returns) +
+  geom_smooth(mapping = aes(x = Year, y = Export_Value))+
+  labs(title = "Export Value From 2020 to 2023")
+```
+
+### Export Profit From 2020 to 2023
+```{r chart 2}
+ggplot(data = yearly_returns) +
+  geom_smooth(mapping = aes(x = Year, y = Total_profit))+
+  labs(title = "Export Profit From 2020 to 2023")
+```
+
+### Total Export Value By Product Between 2020 to 2023
+```{r chart 3}
+ggplot(data = Product_returns) +
+  geom_col(mapping = aes(x = Product.Name, y = Export_value))+
+  labs(title = "Total Export Value By Product Between 2020 to 2023")
+```
+
+### Export Product From 2020 to 2020 Broken Down By Year
+```{r chart 4}
+ggplot(data = nig_agric_exports)+
+  geom_col(mapping = aes(x = Product.Name, y = Export.Value))+
+  facet_wrap(~Year)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(title = "Export Product From 2020 to 2023", subtitle = "Broken down By Year")
+```
+
+### Total Export Value Between 2020 to 2023 Broken Down By Product
+```{r chart 5}
+ggplot(data = nig_agric_exports)+
+  geom_col(mapping = aes(x = Year, y = Export.Value))+
+  facet_wrap(~Product.Name)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(title = "Total Export Value Between 2020 to 2023", subtitle = "Broken down By Product")
+```
+
+### Total Profit Made By Companies
+```{r chart 6}
+ggplot(data = Company_returns)+
+  geom_col(mapping = aes(x = Company, y = Total_profit))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(title = "Total Profit Made By Companies")
+```
+
+### Total Export Value From 2020 to 2023 Broken Down By Country
+```{r chart 7}
+ggplot(data = nig_agric_exports)+
+  geom_smooth(mapping = aes(x = Year, y = Export.Value))+
+  facet_wrap(~Export.Country)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(title = "Total Export Value From 2020 to 2023", subtitle = "Broken down By Country")
+```
+
+### Export Value By Country From 2020 to 2023
+```{r chart 8}
+ggplot(data = nig_agric_exports)+
+  geom_col(mapping = aes(x = Export.Country, y = Export.Value, fill = Product.Name))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(title = ("Export Value By Country From 2020 to 2023"))
+```
+
+### Product Units Sold to Countries From 2020 to 2023
+```{r chart 9}
+ggplot(data = nig_agric_exports)+
+  geom_col(mapping = aes(x = Export.Country, y = Units.Sold, fill = Product.Name))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(title = ("Product Units Sold to Countries From 2020 to 2023"))
+```
+
+### Quantities Of Cocoa Exported From 2020 to 2023
+```{r chart 10}
+ggplot(data = yearly_cocoa_export)+
+  geom_smooth(mapping = aes(x = Year, y = Total_Units))+
+  labs(title = "Quantities Of Cocoa Exported From 2020 to 2023")
+```
+
+### Quantities Of Cocoa Purchased By Different Countries
+```{r chart 11}
+ggplot(data = cocoa_buyers)+
+  geom_col(mapping = aes(x = Export.Country, y = Total_Units))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(title = "Quantities Of Cocoa Purchased by Different Countries")
+```
+
+### Proportion Of Cocoa Units Exported By Companies
+```{r chart 12}
+cocoa_exporters$percentage <- round(cocoa_exporters$Total_Units /sum(cocoa_exporters$Total_Units) * 100, 1)
+ggplot(cocoa_exporters, aes(x="", y = Total_Units, fill = Company)) + 
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar(theta = "y") + 
+  labs(title = "Proportion Of Cocoa Units Exported By Companies") +
+  theme_void() + 
+  geom_text(aes(label = paste0(percentage, "%")),position = position_stack(vjust = 0.5))
+```
+
+### Quantities Of Cocoa Exported By Companies
+```{r chart 13}
+ggplot(data = cocoa_exporters)+
+  geom_col(mapping = aes(x = Company, y = Total_Units))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(title = "Quantities Of Cocoa Exported by Companies")
+```
+
+### Profit Made By Companies From Cocoa Exported
+```{r chart 14}
+ggplot(data = cocoa_exporters)+
+  geom_col(mapping = aes(x = Company, y = Total_profit))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(title = "Profit Made By Companies From Cocoa Exported")
+```
+
+## Insights
+* The largest profit and export value was made from agricultural products in the year 2020.
+* The product with the largest export value was cocoa while sesame has the largest quantities and total profit.
+* Agro Export Nigeria Ltd made the largest total profit and export value from agricultural export between 2020 to 2023.
+* Between 2020 to 2023, most of the export value from agricultural products was made from Italy.
+* Most of the export value realised from Italy was made on exporting sesame.
+* The largest quantities of cocoa was exported to Sweden while the largest export value was made on exports to France.
+* The Nigerian export promotion council made the largest export value from cocoa while golden farms Nigeria limited exported the largest quantities of cocoa.
+* The largest quantites of cocoa was exported in 2023.
+* The largest income from cocoa was made in 2023.
+
+**Cool**
