@@ -1,5 +1,5 @@
 # About me
 
--  I’m looking to collaborate on R and Python projects
--  I’ll appreciate any assistance that would help me improve my knowledge of R and Python.
+-  I’m looking to collaborate on data analysis projects.
+-  I’ll appreciate any assistance that would help me improve my data analysis skills.
 -  **Thank you**
