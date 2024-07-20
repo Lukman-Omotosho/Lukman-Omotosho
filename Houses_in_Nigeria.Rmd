@@ -1,0 +1,154 @@
+---
+title: "Nigeria House Price Analysis"
+author: "Lukman"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## Background
+The prices of houses in Nigeria is known for its flunctuation overtime. This can be attributed to the loss in the value of the naira and some other factors. However, the aim of this analysis is to know how the prices of houses vary in different locations with respect to number of rooms and other inherent factors. This analysis will also help us establish how the prices of houses are affected by their inherent characteristics such as bedrooms and parking space.
+
+## Preparation Of Data and Required Packages
+The dataset to be used was extracted from data.world website. We will be loading the tidyverse package which is required for this analysis and also load the data using the read.csv function.
+```{r}
+library(tidyverse)
+nigeria_houses <- read.csv('C:/Users/U/Desktop/DDP/nigeria_houses_data.csv')
+```
+
+Let's have a glimpse of the data.
+```{r}
+glimpse(nigeria_houses)
+head(nigeria_houses)
+```
+
+The data is clean and processed so that means it can be relied on for our analysis.
+
+## Analysis
+
+### Average price for 3 bedroom flats across different states in Nigeria
+```{r}
+nigeria_houses %>%
+  drop_na() %>%
+  filter(bedrooms == 3) %>%
+  group_by(state) %>%
+  summarize(avg_price = mean(price)) %>% 
+  arrange(-avg_price)
+```
+
+### Towns with highest prices for 3 bedroom flats in Lagos
+```{r}
+nigeria_houses %>%
+  drop_na() %>%
+  filter(bedrooms == 3 & state == "Lagos") %>%
+  group_by(town) %>%
+  summarize(avg_price = mean(price)) %>% 
+  arrange(-avg_price)
+```
+
+### Towns with the cheapest price for 3 bedroom flats in Lagos
+```{r}
+nigeria_houses %>%
+  drop_na() %>%
+  filter(bedrooms == 3 & state == "Lagos") %>%
+  group_by(town) %>%
+  summarize(avg_price = mean(price)) %>% 
+  arrange(avg_price)
+```
+
+### lowest to highest prices for 3 bedroom flats in Abuja
+```{r}
+nigeria_houses %>%
+  drop_na() %>%
+  filter(bedrooms == 3 & state == "Abuja") %>%
+  group_by(town) %>%
+  summarize(avg_price = mean(price)) %>% 
+  arrange(avg_price)
+```
+
+### highest to lowest prices for 3 bedroom flats in Abuja
+```{r}
+nigeria_houses %>%
+  drop_na() %>%
+  filter(bedrooms == 3 & state == "Abuja") %>%
+  group_by(town) %>%
+  summarize(avg_price = mean(price)) %>% 
+  arrange(-avg_price)
+```
+
+### Prices of 3 bedroom flats according to types or title
+```{r}
+nigeria_houses %>%
+  drop_na() %>%
+  filter(bedrooms == 3) %>%
+  group_by(title) %>%
+  summarize(avg_price = mean(price)) %>% 
+  arrange(-avg_price)
+```
+
+## Visualization
+We will be using visualizations to show how the price of houses is affected by the different inherent characteristics such as bedroom and parking space.
+
+### Relationship Between Number Of Toilet and Average Price Of Houses
+```{r}
+nigeria_houses %>% 
+  drop_na() %>% 
+  filter(bedrooms == 3) %>% 
+  group_by(toilets) %>% 
+  summarize(avg_price = mean(price)) %>% 
+  ggplot(mapping = aes(x = toilets, y = avg_price))+
+  geom_point()+
+  labs(title = 'Relationship Between Number Of Toilet and Average Price Of Houses', subtitle = 'Emphasis On Three Bedroom Flats')
+
+```
+
+There isn't much correlation going on there.
+
+### Relationship Between Number Of Bathrooms and Average Price Of Houses
+```{r}
+nigeria_houses %>% 
+  drop_na() %>% 
+  filter(state == 'Lagos' & town == 'Victoria Island (VI)' & title == 'Terraced Bungalow') %>% 
+  group_by(bathrooms) %>% 
+  summarize(avg_price = mean(price)) %>% 
+  ggplot(mapping = aes(x = bathrooms, y = avg_price))+
+  geom_point()+
+  labs(title = 'Relationship Between Number Of Bathrooms and Average Price Of Houses', subtitle = 'Emphasis On Terraced Bungalows in Victoria Island')
+
+```
+
+The number of bathrooms also seems not to be a determining factor for the prices of houses.
+
+### Relationship Between Number Of Parking Space and Average Price Of Houses
+```{r}
+nigeria_houses %>% 
+  drop_na() %>% 
+  filter(state == 'Lagos' & town == 'Victoria Island (VI)' & title == 'Terraced Bungalow') %>% 
+  group_by(parking_space) %>% 
+  summarize(avg_price = mean(price)) %>% 
+  ggplot(mapping = aes(x = parking_space, y = avg_price))+
+  geom_point()+
+  labs(title = 'Relationship Between Number Of Parking Space and Average Price Of Houses', subtitle = 'Emphasis On Terraced Bungalows in Victoria Island')
+
+```
+
+This shows some direct correlation.
+
+### Relationship Between Number Of Bedrooms and Average Price Of Houses
+```{r}
+nigeria_houses %>% 
+  drop_na() %>% 
+  filter(state == 'Lagos' & town == 'Victoria Island (VI)' & title == 'Terraced Bungalow') %>% 
+  group_by(bedrooms) %>% 
+  summarize(avg_price = mean(price)) %>% 
+  ggplot(mapping = aes(x = bedrooms, y = avg_price))+
+  geom_point()+
+  labs(title = 'Relationship Between Number Of Bedrooms and Average Price Of Houses', subtitle = 'Emphasis On Terraced Bungalows in Victoria Island')
+
+```
+
+### Conclusion
+* The prices of houses are not really determined by the number of bathrooms or toilets but by the number of bedrooms and parking space available.
+* The five most expensive states to buy a house in Nigeria are Lagos, Abia, Abuja, Delta and Anambra.
+* The most expensive place to buy a house in Lagos is Ikoyi while the cheapest place is Imota.
+* Gwagwalada is the cheapest place to buy a house in Abuja and the most expensive houses are in Maitama.
+* The most expensive houses in Nigeria are semi detached duplex while the cheapest are semi detached bungalows.
