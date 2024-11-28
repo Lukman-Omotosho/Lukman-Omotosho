@@ -1,4 +1,4 @@
 # About me
 
--  I’m looking to collaborate on data analysis projects.
--  **Thank you**
+ Skilled data analyst looking to collaborate on data analysis projects.
+ **Thank you**
