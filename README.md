@@ -1,4 +1,4 @@
 # About me
 
- Skilled data analyst looking to collaborate on data analysis projects.
- **Thank you**
+ Skilled data and automation specialist looking to collaborate on projects.
+
